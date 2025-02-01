@@ -1,5 +1,6 @@
 import socket
 import os
+import json
 
 # UNIXソケットをストリームモードで作成
 sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
@@ -40,10 +41,16 @@ while True:
             data = connection.recv(1024)
             data_str =  data.decode('utf-8')
             print('Received ' + data_str)
+            request = json.loads(data_str)
+            print(request)
+            print(request["method"])
+            if(request["method"] == "subtract"):
+                result = request["params"][0] - request["params"][1]
 
             if data:
+
                 # 受け取ったメッセージを処理
-                response = 'res：' + data_str
+                response = 'res：' + str(result)
 
                 # 処理したメッセージをクライアントに送り返します。
                 connection.sendall(response.encode())
