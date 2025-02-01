@@ -51,3 +51,4 @@ while True:
     finally:
         print("Closing current connection")
         connection.close()
+        break
