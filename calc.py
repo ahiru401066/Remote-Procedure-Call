@@ -1,25 +1,27 @@
 import math
 
 class Calc:
-    def __init__(self):
-        pass
 
-    def floatToInt(self,x):
+    @staticmethod
+    def subtract(a, b):
+        return a - b
+
+    @staticmethod
+    def floatToInt(x):
         return math.floor(x)
 
-    def nroot(self):
+    @staticmethod
+    def nroot():
         pass
     
-    def reverse(self):
+    @staticmethod
+    def reverse():
         pass
 
-    def validAnagram(self):
+    @staticmethod
+    def validAnagram():
         pass
 
-    def sort(self):
+    @staticmethod
+    def sort():
         pass
-
-
-calc = Calc()
-print(calc.subtract(3,5))
-print(calc.floatToInt(320.1))
