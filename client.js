@@ -2,17 +2,22 @@ const net = require('net');
 
 // サーバーのUNIXドメインソケットファイルのパス
 const SERVER_SOCKET_PATH = '/tmp/socket_file'; 
-
 // クライアント側のUNIXドメインソケットファイルのパス
 const CLIENT_SOCKET_PATH = '/path/to/client_socket'; 
+
+req = {
+    method: "subtract",
+    params: [34,32],
+    param_types: [Number,Number],
+    id: 1,
+}
 
 // ソケットの作成とサーバーへの接続
 const client = net.createConnection(SERVER_SOCKET_PATH, () => {
     console.log('----------------------------------------');
     console.log('✅ サーバーに接続しました');
 
-    // サーバーに送信するデータ（例: 5 + 3）
-    const request = JSON.stringify({ method: "add", params: [5, 3] });
+    const request = JSON.stringify(req);
 
     // サーバーにデータ送信
     client.write(request);
