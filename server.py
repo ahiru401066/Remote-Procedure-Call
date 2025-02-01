@@ -1,6 +1,8 @@
 import socket
 import os
 import json
+from calc import Calc
+
 
 # UNIXソケットをストリームモードで作成
 sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
@@ -22,11 +24,13 @@ sock.bind(server_address)
 sock.listen(1)
 
 
+
 res = {
   "results": "19",
   "result_type": "int",
   "id": 1,
 }
+resDump = json.dumps(res)
 
 #クライアントからの接続を待ち
 while True:
@@ -40,28 +44,29 @@ while True:
             #データ受け取りとdecode
             data = connection.recv(1024)
             data_str =  data.decode('utf-8')
-            print('Received ' + data_str)
+            #json形式に変換
             request = json.loads(data_str)
-            print(request)
-            print(request["method"])
-            if(request["method"] == "subtract"):
-                result = request["params"][0] - request["params"][1]
 
-            if data:
-
-                # 受け取ったメッセージを処理
-                response = 'res：' + str(result)
-
-                # 処理したメッセージをクライアントに送り返します。
+            #method: "exit"の場合は切断処理に移る
+            if(request["method"] == "exit"):
+                print("Closing current connection")
+                response = "exit"
                 connection.sendall(response.encode())
-
-            # クライアントからデータが送られてこなければ、ループを終了
-            else:
-                print('no data from', client_address)
                 break
 
-    # 最終的に接続を閉じる
+            if(request["method"] == "subtract"):
+                result = Calc.subtract(request["params"][0],request["params"][1])
+            elif(request["method"] == "floor"):
+                result = Calc.floatToInt(request["params"][0])
+                print(result)
+
+            # 受け取ったメッセージを処理
+            response = str(resDump)
+
+            # 処理したメッセージをクライアントに送り返します。
+            connection.sendall(response.encode())
+        print("ok")
     finally:
-        print("Closing current connection")
+        print("final")
         connection.close()
         break
