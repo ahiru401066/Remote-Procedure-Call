@@ -1,3 +1,4 @@
+from collections import Counter
 import math
 
 class Calc:
@@ -12,16 +13,22 @@ class Calc:
 
     @staticmethod
     def nroot():
-        pass
+        if n <= 0:
+            raise "n must be greater than 0"
+        if x < 0 and n % 2 == 0:
+            raise "Cannot compute even root of negative number"
+        return x ** (1 / n)
+
+        return x ** (1 / n)
     
     @staticmethod
-    def reverse():
-        pass
+    def reverse(s):
+        return s[::-1]
 
     @staticmethod
-    def validAnagram():
-        pass
+    def validAnagram(s,t):
+        return Counter(s) == Counter(t)
 
     @staticmethod
-    def sort():
-        pass
+    def sort(s):
+        return sorted(s)
