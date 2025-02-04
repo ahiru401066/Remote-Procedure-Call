@@ -18,8 +18,6 @@ class Calc:
         if x < 0 and n % 2 == 0:
             raise "Cannot compute even root of negative number"
         return x ** (1 / n)
-
-        return x ** (1 / n)
     
     @staticmethod
     def reverse(s):
