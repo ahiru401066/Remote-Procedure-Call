@@ -41,20 +41,26 @@ while True:
 
         #通信開始
         while True:
-            #データ受け取りとdecode
+            #データ受け取り->decode->json形式
             data = connection.recv(1024)
             data_str =  data.decode('utf-8')
-            #json形式に変換
             request = json.loads(data_str)
 
             if(request["method"] == "subtract"):
                 result = Calc.subtract(request["params"][0],request["params"][1])
             elif(request["method"] == "floor"):
                 result = Calc.floatToInt(request["params"][0])
-                print(result)
+            elif(request["method"] == "nroot"):
+                result = Calc.nroot(request["params"][0],request["params"][1])
+            elif(request["method"] == "reverse"):
+                result = Calc.reverse(request["params"][0])
+            elif(request["method"] == "validAnagram"):
+                result = Calc.validAnagram(request["params"][0],request["params"][1])
+            elif(request["method"] == "sort"):
+                result = Calc.sort(request["params"][0])
 
             # 受け取ったメッセージを処理
-            response = str(resDump)
+            response = toJson(result, request["param_types"],request["id"])
 
             # 処理したメッセージをクライアントに送り返します。
             connection.sendall(response.encode())
