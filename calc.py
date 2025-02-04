@@ -12,7 +12,7 @@ class Calc:
         return math.floor(x)
 
     @staticmethod
-    def nroot():
+    def nroot(n,x):
         if n <= 0:
             raise "n must be greater than 0"
         if x < 0 and n % 2 == 0:
