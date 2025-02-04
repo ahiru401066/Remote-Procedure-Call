@@ -3,6 +3,15 @@ import os
 import json
 from calc import Calc
 
+def toJson(result, result_type, id):
+    "出力をjson形式に変換するための関数"
+    data = {
+        "result": result,
+        "result_type": result_type,
+        "id": id,
+    }
+    return json.dumps(data)
+
 
 # UNIXソケットをストリームモードで作成
 sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
@@ -23,15 +32,6 @@ sock.bind(server_address)
 # ソケットが接続要求を待機する
 sock.listen(1)
 
-
-
-res = {
-  "results": "19",
-  "result_type": "int",
-  "id": 1,
-}
-resDump = json.dumps(res)
-
 #クライアントからの接続を待ち
 while True:
     # クライアントからの接続を受け入れる
@@ -47,13 +47,6 @@ while True:
             #json形式に変換
             request = json.loads(data_str)
 
-            #method: "exit"の場合は切断処理に移る
-            if(request["method"] == "exit"):
-                print("Closing current connection")
-                response = "exit"
-                connection.sendall(response.encode())
-                break
-
             if(request["method"] == "subtract"):
                 result = Calc.subtract(request["params"][0],request["params"][1])
             elif(request["method"] == "floor"):
@@ -65,7 +58,6 @@ while True:
 
             # 処理したメッセージをクライアントに送り返します。
             connection.sendall(response.encode())
-        print("ok")
     finally:
         print("final")
         connection.close()
