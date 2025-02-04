@@ -4,69 +4,94 @@ import json
 from calc import Calc
 
 
-# UNIXソケットをストリームモードで作成
-sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+class SocketServer:
+    def __init__(self, server_address='/tmp/socket_file'):
+        """ソケットサーバーを初期化"""
+        self.server_address = server_address
 
-# このサーバが接続を待つUNIXソケットのパスを設定
-server_address = '/tmp/socket_file'
+        # 以前のソケットファイルを削除
+        try:
+            os.unlink(self.server_address)
+        except FileNotFoundError:
+            pass
 
-# 以前の接続が残っていた場合に備えて、サーバアドレスをアンリンク（削除）
-try:
-    os.unlink(server_address)
-except FileNotFoundError:
-    pass
+        # UNIX ソケットを作成
+        self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        self.sock.bind(self.server_address)
+        self.sock.listen(1)
 
-print('Starting up on {}'.format(server_address))
-print('---------------------------------')
-# サーバアドレスにソケットをバインド（接続）
-sock.bind(server_address)
-# ソケットが接続要求を待機する
-sock.listen(1)
+        print(f'✅ サーバーが {self.server_address} で待機中...')
 
-
-
-res = {
-  "results": "19",
-  "result_type": "int",
-  "id": 1,
-}
-resDump = json.dumps(res)
-
-#クライアントからの接続を待ち
-while True:
-    # クライアントからの接続を受け入れる
-    connection, client_address = sock.accept()
-    try:
-        print('connection!')
-
-        #通信開始
+    def start_server(self):
+        """クライアントの接続を待機"""
         while True:
-            #データ受け取りとdecode
-            data = connection.recv(1024)
-            data_str =  data.decode('utf-8')
-            #json形式に変換
-            request = json.loads(data_str)
+            connection, _ = self.sock.accept()
+            print('クライアントと接続')
 
-            #method: "exit"の場合は切断処理に移る
-            if(request["method"] == "exit"):
-                print("Closing current connection")
-                response = "exit"
+            try:
+                self.handle_request(connection)
+            finally:
+                connection.close()
+                print("クライアントの接続を終了")
+
+    def handle_request(self, connection):
+        """クライアントのリクエストを処理"""
+        while True:
+            try:
+                #データ受け取り->decode->json形式
+                data = connection.recv(1024)
+                data_str =  data.decode('utf-8')
+                request = json.loads(data_str)
+
+                # "exit" コマンドでサーバーを終了
+                if request["method"] == "exit":
+                    print("⏹ サーバーを終了します")
+                    response = self.to_json("exit", request["id"])
+                    connection.sendall(response.encode())
+                    break
+
+                # 計算処理
+                result = self.process_request(request)
+                
+                # JSON 形式でレスポンスを送信
+                response = self.to_json(result, request["id"])
+                print(response)
                 connection.sendall(response.encode())
+            finally:
+                print("close")
+                connection.close()
                 break
 
-            if(request["method"] == "subtract"):
-                result = Calc.subtract(request["params"][0],request["params"][1])
-            elif(request["method"] == "floor"):
-                result = Calc.floatToInt(request["params"][0])
-                print(result)
 
-            # 受け取ったメッセージを処理
-            response = str(resDump)
+    def process_request(self, request):
+        """リクエストを処理し、計算結果を返す"""
+        method = request["method"]
+        params = request["params"]
 
-            # 処理したメッセージをクライアントに送り返します。
-            connection.sendall(response.encode())
-        print("ok")
-    finally:
-        print("final")
-        connection.close()
-        break
+        if method == "subtract":
+            return Calc.subtract(*params)
+        elif method == "floor":
+            return Calc.floatToInt(*params)
+        elif method == "nroot":
+            return Calc.nroot(*params)
+        elif method == "reverse":
+            return Calc.reverse(*params)
+        elif method == "validAnagram":
+            return Calc.validAnagram(*params)
+        elif method == "sort":
+            return Calc.sort(params)
+        else:
+            raise ValueError("未定義のメソッド")
+
+    def to_json(self, result, id):
+        """出力を JSON 形式に変換"""
+        return json.dumps({
+            "result": result,
+            "result_type": type(result).__name__,
+            "id": id,
+        })
+
+# サーバーの起動
+if __name__ == "__main__":
+    server = SocketServer()
+    server.start_server()
